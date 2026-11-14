@@ -1,0 +1,764 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>私のおすすめゲーム</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    background: radial-gradient(
+        ellipse at center,
+        #263449 0%,
+        #101722 65%,
+        #080c13 100%
+    );
+    color: white;
+    font-family: Arial, sans-serif;
+    height: 100vh;
+    height: 100dvh;
+}
+
+/* ヘッダー */
+
+header {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 85px;
+    text-align: center;
+    padding: 15px;
+    z-index: 10;
+    pointer-events: none;
+}
+
+header h1 {
+    margin: 0;
+    font-size: clamp(22px, 4vw, 32px);
+    letter-spacing: 3px;
+}
+
+header p {
+    color: #aabbd0;
+    font-size: 12px;
+    margin: 5px;
+}
+
+/* 3Dシーン */
+
+#scene {
+    position: absolute;
+    inset: 85px 0 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    perspective: 1500px;
+    overflow: hidden;
+    touch-action: pan-y;
+}
+
+#ring {
+    position: absolute;
+    width: 0;
+    height: 0;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+/* ゲームカード */
+
+.game-card {
+    position: absolute;
+    width: 250px;
+    height: 350px;
+    left: -125px;
+    top: -175px;
+
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 18px;
+
+    background: #1b293a;
+    overflow: hidden;
+
+    backface-visibility: hidden;
+    transform-style: preserve-3d;
+
+    transform:
+        rotateY(var(--angle))
+        translateZ(var(--radius))
+        scale(var(--scale));
+
+    opacity: var(--opacity);
+
+    box-shadow: 0 15px 50px rgba(0,0,0,.6);
+}
+
+.game-card.active {
+    border: 2px solid #6ccaff;
+    box-shadow: 0 0 35px rgba(65,170,255,.35);
+}
+
+/* ゲーム画像 */
+
+.game-image {
+    height: 65%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    background: linear-gradient(
+        145deg,
+        #294b70,
+        #151c35
+    );
+
+    font-size: 60px;
+    overflow: hidden;
+}
+
+.game-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ゲーム情報 */
+
+.game-info {
+    padding: 12px;
+    background: linear-gradient(
+        #1c2b40,
+        #101927
+    );
+    height: 35%;
+}
+
+.game-info h2 {
+    font-size: 18px;
+    margin: 0 0 8px;
+}
+
+.rating {
+    color: #ffc94d;
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+.comment {
+    color: #c1d0df;
+    font-size: 11px;
+    line-height: 1.5;
+    margin-top: 8px;
+}
+
+/* 操作エリア */
+
+#controls {
+    position: absolute;
+    bottom: 20px;
+    left: 0;
+    width: 100%;
+    height: 100px;
+
+    text-align: center;
+    z-index: 20;
+    pointer-events: none;
+
+    padding: 5px;
+}
+
+#current-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 3px;
+    color: #75caff;
+}
+
+#counter {
+    font-size: 12px;
+    color: #8da1b8;
+}
+
+#arrows {
+    margin-top: 5px;
+}
+
+#arrows button {
+    pointer-events: auto;
+
+    background: rgba(255,255,255,.1);
+    border: 1px solid rgba(255,255,255,.35);
+
+    color: white;
+    width: 42px;
+    height: 32px;
+
+    border-radius: 8px;
+    font-size: 18px;
+
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+#arrows button:hover {
+    background: #287bb0;
+}
+
+#controls p {
+    font-size: 11px;
+    color: #aabbd0;
+    margin: 4px;
+}
+
+/* スマホ */
+
+@media (max-width: 600px) {
+
+    header {
+        height: 75px;
+        padding: 12px 5px;
+    }
+
+    header h1 {
+        font-size: 23px;
+    }
+
+    #scene {
+        inset: 75px 0 100px;
+    }
+
+    .game-card {
+        width: 210px;
+        height: 300px;
+        left: -105px;
+        top: -150px;
+    }
+
+    .game-info {
+        padding: 10px;
+    }
+
+    .game-info h2 {
+        font-size: 16px;
+    }
+
+    .rating {
+        font-size: 15px;
+    }
+
+    .comment {
+        font-size: 10px;
+    }
+
+    #current-name {
+        font-size: 16px;
+    }
+}
+
+/* 画面の高さが小さい場合 */
+
+@media (max-height: 650px) {
+    #scene {
+        inset: 65px 0 85px;
+    }
+
+    header {
+        height: 65px;
+        padding: 8px;
+    }
+
+    header h1 {
+        font-size: 22px;
+    }
+
+    header p {
+        margin: 2px;
+    }
+
+    .game-card {
+        width: 210px;
+        height: 295px;
+        left: -105px;
+        top: -147px;
+    }
+
+    #controls {
+        height: 85px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>私のおすすめゲーム</h1>
+    <p>MY FAVORITE GAMES</p>
+</header>
+
+<!-- 3Dカルーセル -->
+
+<div id="scene">
+    <div id="ring"></div>
+</div>
+
+<!-- 操作エリア -->
+
+<div id="controls">
+
+    <div id="current-name">
+        ゲームを選択
+    </div>
+
+    <div id="counter">
+        1 / 8
+    </div>
+
+    <div id="arrows">
+        <button id="prev">❮</button>
+        <button id="next">❯</button>
+    </div>
+
+    <p>マウスホイール / スワイプで回転</p>
+
+</div>
+
+<script>
+
+// ==================================
+// ゲーム情報
+// ==================================
+
+const games = [
+
+    {
+        name: "ゲームタイトル 1",
+        image: "",
+        icon: "🎮",
+        rating: 5,
+        comment: "ここにゲームのおすすめポイントを記入します。"
+    },
+
+    {
+        name: "ゲームタイトル 2",
+        image: "",
+        icon: "⚔️",
+        rating: 4,
+        comment: "ここにゲームの感想を記入します。"
+    },
+
+    {
+        name: "ゲームタイトル 3",
+        image: "",
+        icon: "🚀",
+        rating: 5,
+        comment: "ここにゲームの感想を記入します。"
+    },
+
+    {
+        name: "ゲームタイトル 4",
+        image: "",
+        icon: "🏎️",
+        rating: 3,
+        comment: "ここにゲームの感想を記入します。"
+    },
+
+    {
+        name: "ゲームタイトル 5",
+        image: "",
+        icon: "🐉",
+        rating: 5,
+        comment: "ここにゲームの感想を記入します。"
+    },
+
+    {
+        name: "ゲームタイトル 6",
+        image: "",
+        icon: "🌌",
+        rating: 4,
+        comment: "ここにゲームの感想を記入します。"
+    },
+
+    {
+        name: "ゲームタイトル 7",
+        image: "",
+        icon: "🧙",
+        rating: 4,
+        comment: "ここにゲームの感想を記入します。"
+    },
+
+    {
+        name: "ゲームタイトル 8",
+        image: "",
+        icon: "🏰",
+        rating: 5,
+        comment: "ここにゲームの感想を記入します。"
+    }
+
+];
+
+// ==================================
+// カルーセル設定
+// ==================================
+
+const ring = document.getElementById("ring");
+const scene = document.getElementById("scene");
+
+const total = games.length;
+const step = 360 / total;
+
+let rotation = 0;
+let targetRotation = 0;
+
+let dragging = false;
+let startX = 0;
+let startRotation = 0;
+
+let animationFrame = null;
+
+// 円形配置の半径
+
+function radius() {
+
+    return Math.min(
+        650,
+        Math.max(340, window.innerWidth * 0.78)
+    );
+
+}
+
+// ==================================
+// カード作成
+// ==================================
+
+games.forEach((game, i) => {
+
+    const card = document.createElement("div");
+
+    card.className = "game-card";
+
+    const imageContent = game.image
+
+        ? `<img src="${game.image}" alt="${game.name}">`
+
+        : `<span>${game.icon}</span>
+           <small style="font-size:12px;margin-top:12px">
+           GAME IMAGE
+           </small>`;
+
+    card.innerHTML = `
+
+        <div class="game-image">
+            ${imageContent}
+        </div>
+
+        <div class="game-info">
+
+            <h2>${game.name}</h2>
+
+            <div class="rating">
+                ${"★".repeat(game.rating)}
+                ${"☆".repeat(5 - game.rating)}
+            </div>
+
+            <div class="comment">
+                ${game.comment}
+            </div>
+
+        </div>
+
+    `;
+
+    card.style.setProperty(
+        "--angle",
+        `${i * step}deg`
+    );
+
+    ring.appendChild(card);
+
+});
+
+// ==================================
+// 3D表示更新
+// ==================================
+
+function render() {
+
+    ring.style.transform =
+        `rotateY(${rotation}deg)`;
+
+    const cards =
+        document.querySelectorAll(".game-card");
+
+    let nearestIndex = 0;
+    let nearestDistance = Infinity;
+
+    cards.forEach((card, i) => {
+
+        const angle = i * step + rotation;
+
+        const normalized =
+            ((angle % 360) + 360) % 360;
+
+        const distance =
+            Math.min(
+                normalized,
+                360 - normalized
+            );
+
+        const depth =
+            Math.cos(distance * Math.PI / 180);
+
+        const scale =
+            0.68 + 0.32 * Math.max(0, depth);
+
+        const opacity =
+            0.45 + 0.55 * Math.max(0, depth);
+
+        card.style.setProperty(
+            "--radius",
+            `${radius()}px`
+        );
+
+        card.style.setProperty(
+            "--scale",
+            scale
+        );
+
+        card.style.setProperty(
+            "--opacity",
+            opacity
+        );
+
+        card.style.zIndex =
+            Math.round(depth * 100 + 100);
+
+        card.classList.remove("active");
+
+        if (distance < nearestDistance) {
+
+            nearestDistance = distance;
+            nearestIndex = i;
+
+        }
+
+    });
+
+    const cardsArray = [...cards];
+
+    cardsArray[nearestIndex].classList.add("active");
+
+    document.getElementById("current-name").textContent =
+        games[nearestIndex].name;
+
+    document.getElementById("counter").textContent =
+        `${nearestIndex + 1} / ${total}`;
+
+}
+
+// ==================================
+// 滑らかな回転
+// ==================================
+
+function animate() {
+
+    rotation +=
+        (targetRotation - rotation) * 0.12;
+
+    if (
+        Math.abs(targetRotation - rotation) < 0.01
+    ) {
+
+        rotation = targetRotation;
+
+        render();
+
+        animationFrame = null;
+
+        return;
+
+    }
+
+    render();
+
+    animationFrame =
+        requestAnimationFrame(animate);
+
+}
+
+// ==================================
+// 回転処理
+// ==================================
+
+function move(direction) {
+
+    targetRotation -= direction * step;
+
+    if (!animationFrame) {
+
+        animationFrame =
+            requestAnimationFrame(animate);
+
+    }
+
+}
+
+// ==================================
+// 中央カードに吸着
+// ==================================
+
+function snapToNearest() {
+
+    targetRotation =
+        Math.round(rotation / step) * step;
+
+    if (!animationFrame) {
+
+        animationFrame =
+            requestAnimationFrame(animate);
+
+    }
+
+}
+
+// ==================================
+// マウスホイール
+// 感度を低く調整
+// ==================================
+
+let wheelAccumulator = 0;
+let wheelTimer = null;
+
+scene.addEventListener("wheel", (e) => {
+
+    e.preventDefault();
+
+    wheelAccumulator += e.deltaY;
+
+    clearTimeout(wheelTimer);
+
+    wheelTimer = setTimeout(() => {
+
+        if (Math.abs(wheelAccumulator) > 15) {
+
+            move(
+                wheelAccumulator > 0 ? 1 : -1
+            );
+
+        }
+
+        wheelAccumulator = 0;
+
+    }, 180);
+
+}, { passive: false });
+
+// ==================================
+// ボタン操作
+// ==================================
+
+document.getElementById("next").onclick = () => {
+    move(1);
+};
+
+document.getElementById("prev").onclick = () => {
+    move(-1);
+};
+
+// ==================================
+// マウス・タッチ操作
+// ==================================
+
+scene.addEventListener("pointerdown", (e) => {
+
+    if (e.target.closest("button")) return;
+
+    dragging = true;
+
+    startX = e.clientX;
+    startRotation = rotation;
+
+    targetRotation = rotation;
+
+    if (animationFrame) {
+
+        cancelAnimationFrame(animationFrame);
+
+        animationFrame = null;
+
+    }
+
+    scene.setPointerCapture(e.pointerId);
+
+});
+
+scene.addEventListener("pointermove", (e) => {
+
+    if (!dragging) return;
+
+    const delta = e.clientX - startX;
+
+    rotation =
+        startRotation + delta * 0.35;
+
+    render();
+
+});
+
+scene.addEventListener("pointerup", () => {
+
+    if (!dragging) return;
+
+    dragging = false;
+
+    snapToNearest();
+
+});
+
+scene.addEventListener("pointercancel", () => {
+
+    if (!dragging) return;
+
+    dragging = false;
+
+    snapToNearest();
+
+});
+
+// ==================================
+// キーボード操作
+// ==================================
+
+window.addEventListener("keydown", (e) => {
+
+    if (e.key === "ArrowRight") {
+        move(1);
+    }
+
+    if (e.key === "ArrowLeft") {
+        move(-1);
+    }
+
+});
+
+// ==================================
+// 初期化
+// ==================================
+
+window.addEventListener("resize", render);
+
+render();
+
+</script>
+
+</body>
+</html>

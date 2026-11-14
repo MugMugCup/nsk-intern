@@ -73,16 +73,15 @@ header p {
 }
 
 /* ゲームカード */
-
 .game-card {
     position: absolute;
-    width: 250px;
-    height: 350px;
-    left: -125px;
-    top: -175px;
+    width: 345px;
+    height: 493.5px;
+    left: -172.5px;
+    top: -246.75px;
 
     border: 1px solid rgba(255,255,255,.3);
-    border-radius: 18px;
+    border-radius: 16px;
 
     background: #1b293a;
     overflow: hidden;
@@ -90,14 +89,10 @@ header p {
     backface-visibility: hidden;
     transform-style: preserve-3d;
 
-    transform:
-        rotateY(var(--angle))
-        translateZ(var(--radius))
-        scale(var(--scale));
-
-    opacity: var(--opacity);
-
-    box-shadow: 0 15px 50px rgba(0,0,0,.6);
+    transform: translateX(0);
+    opacity: 1;
+    transition: transform .25s ease, opacity .25s ease;
+    box-shadow: 0 15px 40px rgba(0,0,0,.6);
 }
 
 .game-card.active {
@@ -236,10 +231,10 @@ header p {
     }
 
     .game-card {
-        width: 210px;
-        height: 300px;
-        left: -105px;
-        top: -150px;
+        width: 247.5px;
+        height: 379.5px;
+        left: -123.75px;
+        top: -189.75px;
     }
 
     .game-info {
@@ -284,10 +279,10 @@ header p {
     }
 
     .game-card {
-        width: 210px;
-        height: 295px;
-        left: -105px;
-        top: -147px;
+        width: 345px;
+        height: 484.5px;
+        left: -172.5px;
+        top: -242.25px;
     }
 
     #controls {
@@ -345,7 +340,7 @@ const games = [
         image: "./dorakue.jpg",
         icon: "🎮",
         rating: 5,
-        comment: "ここにゲームのおすすめポイントを記入します。"
+        comment: "面白い。"
     },
 
     {
@@ -353,7 +348,7 @@ const games = [
         image: "./spiderman.png",
         icon: "⚔️",
         rating: 4,
-        comment: "ここにゲームの感想を記入します。"
+        comment: "とても面白い。"
     },
 
     {
@@ -361,7 +356,7 @@ const games = [
         image: "./undertale.webp",
         icon: "🚀",
         rating: 5,
-        comment: "ここにゲームの感想を記入します。"
+        comment: "素晴らしい。"
     },
 
     {
@@ -425,17 +420,6 @@ let startRotation = 0;
 
 let animationFrame = null;
 
-// 円形配置の半径
-
-function radius() {
-
-    return Math.min(
-        650,
-        Math.max(340, window.innerWidth * 0.78)
-    );
-
-}
-
 // ==================================
 // カード作成
 // ==================================
@@ -493,69 +477,57 @@ games.forEach((game, i) => {
 
 function render() {
 
-    ring.style.transform =
-        `rotateY(${rotation}deg)`;
-
     const cards =
         document.querySelectorAll(".game-card");
 
     let nearestIndex = 0;
     let nearestDistance = Infinity;
 
+    // 回転角から、中央に表示するカードを判定
     cards.forEach((card, i) => {
 
         const angle = i * step + rotation;
-
-        const normalized =
-            ((angle % 360) + 360) % 360;
-
-        const distance =
-            Math.min(
-                normalized,
-                360 - normalized
-            );
-
-        const depth =
-            Math.cos(distance * Math.PI / 180);
-
-        const scale =
-            0.68 + 0.32 * Math.max(0, depth);
-
-        const opacity =
-            0.45 + 0.55 * Math.max(0, depth);
-
-        card.style.setProperty(
-            "--radius",
-            `${radius()}px`
-        );
-
-        card.style.setProperty(
-            "--scale",
-            scale
-        );
-
-        card.style.setProperty(
-            "--opacity",
-            opacity
-        );
-
-        card.style.zIndex =
-            Math.round(depth * 100 + 100);
-
-        card.classList.remove("active");
+        const normalized = ((angle % 360) + 360) % 360;
+        const distance = Math.min(normalized, 360 - normalized);
 
         if (distance < nearestDistance) {
-
             nearestDistance = distance;
             nearestIndex = i;
-
         }
 
     });
 
-    const cardsArray = [...cards];
+    // 中央の左右2枚ずつ、合計5枚を横並びに配置
+    cards.forEach((card, i) => {
 
-    cardsArray[nearestIndex].classList.add("active");
+        let offset = i - nearestIndex;
+        if (offset > total / 2) offset -= total;
+        if (offset < -total / 2) offset += total;
+
+        const distance = Math.abs(offset);
+        const scale = distance === 0 ? 1 : distance === 1 ? 0.84 : 0.68;
+        const opacity = distance <= 2 ? 1 - distance * 0.12 : 0;
+        // 外側2枚目が画面左右の端近くに来るよう、画面幅から間隔を計算
+        const outerCardHalfWidth = 118; // 150%サイズ・縮小後の外側カードのおよその半幅
+        const edgeMargin = 16;
+        const spacing = Math.max(
+            150,
+            Math.min(340, (window.innerWidth / 2 - edgeMargin - outerCardHalfWidth) / 2)
+        );
+
+        // 左右1枚目だけ外側へ寄せ、2枚目との間隔を縮める
+        const horizontalOffset = distance === 1
+            ? Math.sign(offset) * spacing * 1.22
+            : offset * spacing;
+
+        card.style.transform =
+            `translateX(${horizontalOffset}px) translateZ(${-distance * 18}px) rotateY(${offset * 16}deg) scale(${scale})`;
+        card.style.opacity = opacity;
+        card.style.zIndex = 100 - distance;
+        card.style.pointerEvents = distance <= 2 ? "auto" : "none";
+        card.classList.toggle("active", distance === 0);
+
+    });
 
     document.getElementById("current-name").textContent =
         games[nearestIndex].name;
